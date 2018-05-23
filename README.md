@@ -1,7 +1,5 @@
 pytorch-crf
-+++++++++++
 
-Conditional random field in `PyTorch <http://pytorch.org/>`_.
 
 Description
 ===========
@@ -12,18 +10,14 @@ Requirements
 ============
 
 - Python 3.6
-- PyTorch 0.3.0
+- PyTorch 0.4.0
 
 Installation
 ============
 
 You can install with pip ::
 
-    pip install pytorch-crf
-
-Or, you can install from Github directly ::
-
-    pip install git+https://github.com/kmkurn/pytorch-crf#egg=pytorch_crf
+    pip install git+https://github.com/yumoh/torchcrf.git
 
 Examples
 ========
@@ -76,17 +70,6 @@ Decoding with mask
     >>> model.decode(emissions, mask=mask)
     [[3, 1, 3], [0, 1]]
 
-See ``tests/test_crf.py`` for more examples.
-
-License
-=======
-
-MIT. See `LICENSE`_ for details.
-
-Contributing
-============
-
-Contributions are welcome! Please follow these instructions to setup dependencies and running the tests and linter. Make a pull request once your contribution is ready.
 
 Installing dependencies
 -----------------------

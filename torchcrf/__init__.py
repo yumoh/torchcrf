@@ -3,6 +3,7 @@ from typing import List, Optional, Union
 import torch
 import torch.nn as nn
 from torch import Tensor
+import torch.tensor
 
 
 class CRF(nn.Module):
@@ -44,9 +45,9 @@ class CRF(nn.Module):
             raise ValueError(f'invalid number of tags: {num_tags}')
         super().__init__()
         self.num_tags = num_tags
-        self.start_transitions = torch.Tensor(num_tags)
-        self.end_transitions = torch.Tensor(num_tags)
-        self.transitions = torch.Tensor(num_tags, num_tags)
+        self.start_transitions = nn.Parameter(torch.Tensor(num_tags))
+        self.end_transitions = nn.Parameter(torch.Tensor(num_tags))
+        self.transitions = nn.Parameter(torch.Tensor(num_tags, num_tags))
 
         self.reset_parameters()
 
@@ -108,7 +109,7 @@ class CRF(nn.Module):
                 raise ValueError('mask of the first timestep must all be on')
 
         if mask is None:
-            mask = Tensor(self._new(tags.size()).fill_(1)).byte()
+            mask = torch.tensor(self._new(tags.size()).fill_(1)).byte()
 
         numerator = self._compute_joint_llh(emissions, tags, mask)
         denominator = self._compute_log_partition_function(emissions, mask)
@@ -160,7 +161,9 @@ class CRF(nn.Module):
         for emission, mask_ in zip(emissions, mask):
             seq_length = mask_.long().sum()
             best_tags.append(self._viterbi_decode(emission[:seq_length]))
-        return best_tags
+
+        return torch.tensor(best_tags)
+        # return best_tags
 
     def _compute_joint_llh(self,
                            emissions: Tensor,
@@ -278,12 +281,17 @@ class CRF(nn.Module):
         # Find the tag which maximizes the score at the last timestep; this is our best tag
         # for the last timestep
         _, best_last_tag = viterbi_score.max(0)
-        best_tags = [best_last_tag[0]]
+        if viterbi_score.dim() ==1:
+            best_tags = [best_last_tag.item()]
+        else:
+            best_tags = [best_last_tag[0]]
 
         # We trace back where the best last tag comes from, append that to our best tag
         # sequence, and trace it back again, and so on
         for path in reversed(viterbi_path):
             best_last_tag = path[best_tags[-1]]
+            if path.dim() == 1:
+                best_last_tag=best_last_tag.item()
             best_tags.append(best_last_tag)
 
         # Reverse the order because we start from the last timestep
